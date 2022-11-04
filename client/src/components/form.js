@@ -1,44 +1,53 @@
 import React from 'react'
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button, Grid, Alert, TextField } from '@mui/material';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
-import { DatePicker, TimePicker } from '@mui/x-date-pickers';
+import { DateTimePicker  } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 
-const Form = () => {
+const Form = ({submitted, setSubmitted}) => {
 
     const [date, setDate] = useState(new Date());
-    const [time, setTime] = useState(new Date());
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [isAlert, setIsAlert] = useState(false);
     const [alertMsg, setAlertMsg] = useState("");
+    const [alertSeverity, setAlertSeverity] = useState('info');
+    
+    const DISABLE_ALERT_TIME = 5000;
+
+    const showAlert = (msg, severity)=> {
+        setIsAlert(true);
+        setAlertSeverity(severity);
+        setAlertMsg(msg);
+        setTimeout(()=> {
+            setIsAlert(false);
+        }, [DISABLE_ALERT_TIME]);
+    }
+
     const submitTask = async ()=> {
-        if(name=='') {
-            setIsAlert(true);
-            setAlertMsg("Please Enter the required fields")
+        if(name==='') {
+            showAlert("Please Enter the required fields", 'info')
             return false;
         }
         else setIsAlert(false);
         const res = await fetch('/new-task', {
             method : "POST",
-            body : JSON.stringify({name, description, date, time}),
+            body : JSON.stringify({name, description, date}),
             headers: { 'Content-Type': 'application/json' },
         });
-        const data = await res.json();
         if(res.ok){
-            setIsAlert(true);
-            setAlertMsg("Task Submitted");
+            showAlert("Task Submitted", 'success');
+            setSubmitted(!submitted);
         }
         else{
-            setIsAlert(true);
-            setAlertMsg("Something went wrong");
+            showAlert("Something went wrong", 'error');
         }
     }
 
     return (
         <div style={styles.formdiv}>
-            {isAlert &&  <Alert severity="info" style={{position : "absolute"}}>{alertMsg}</Alert>}
+            {isAlert &&  <Alert severity={alertSeverity} style={{position : "absolute"}}>{alertMsg}</Alert>}
             <div style={styles.heading}>
                 Task Creater
             </div>
@@ -70,23 +79,13 @@ const Form = () => {
                     />
                 </Grid>
                 <Grid container>
-                    <Grid item xs={6}>
+                    <Grid item xs={12}>
                         <LocalizationProvider dateAdapter={AdapterMoment}>
-                            <DatePicker
+                            <DateTimePicker
                                 disablePast
                                 label="Choose date"
                                 value={date}
                                 onChange={(e) => setDate(e._d)}
-                                renderInput={(params) => <TextField {...params} />}
-                            />
-                        </LocalizationProvider>
-                    </Grid>
-                    <Grid item xs={6} >
-                        <LocalizationProvider dateAdapter={AdapterMoment}>
-                            <TimePicker
-                                label="Set Time"
-                                value={time}
-                                onChange={(e) => setTime(e._d)}
                                 renderInput={(params) => <TextField {...params} />}
                             />
                         </LocalizationProvider>
@@ -123,7 +122,7 @@ const styles =  {
         paddingBottom : "20px",
         borderRadius : "10px",
         minWidth : "350px",
-        border : "2px solid black",
+        border : "2px solid #1976d2",
     },
     formCenter : {
         display : "flex",

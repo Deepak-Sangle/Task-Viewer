@@ -1,53 +1,58 @@
 import React from 'react'
-import { useState } from 'react';
-import {  Divider, Tab, Tabs, Box, Grid } from '@mui/material';
+import { useState, useEffect } from 'react';
+import {  Divider, Tab, Tabs, Grid } from '@mui/material';
 import './drawer.css';
+import { ColorRing } from  'react-loader-spinner'
 
-const Drawer = () => {
+const Drawer = ({submitted}) => {
 
     const [tabIndex, setTabIndex] = useState(0);
 
     const handleTabChange = (event, newTabIndex) => {
         setTabIndex(newTabIndex);
     };
-    
-    const upcomings = [
-        {name : "First Task", description : "small", date : new Date(), time : new Date()},
-        {name : "Very very lengthy task name", description : "", date : new Date(), time : new Date()},
-        {name : "Third Task", description : "arisfgniubfgiuegniupetfbgiuefbguiebguiebfguiegiub", date : new Date(), time : new Date()},
-    ]
-
-    const all = [
-        {name : "First Task", description : "small", date : new Date(), time : new Date()},
-        {name : "Very very lengthy task name", description : "", date : new Date(), time : new Date()},
-        {name : "Third Task", description : "arisfgniubfgiuegniupetfbgiuefbguiebguiebfguiegiubarisfgniubfgiuegniupetfbgiuefbguiebguiebfguiegiubarisfgniubfgiuegniupetfbgiuefbguiebguiebfguiegiub", date : new Date(), time : new Date()},
-        {name : "Fourth Task", description : "Decent task", date : new Date(), time : new Date()},
-        {name : "First Task", description : "small", date : new Date(), time : new Date()},
-        {name : "Very very lengthy task name", description : "", date : new Date(), time : new Date()},
-        {name : "Third Task", description : "arisfgniubfgiuegniupetfbgiuefbguiebguiebfguiegiubarisfgniubfgiuegniupetfbgiuefbguiebguiebfguiegiubarisfgniubfgiuegniupetfbgiuefbguiebguiebfguiegiub", date : new Date(), time : new Date()},
-        {name : "Fourth Task", description : "Decent task", date : new Date(), time : new Date()},
-        {name : "First Task", description : "small", date : new Date(), time : new Date()},
-        {name : "Very very lengthy task name", description : "", date : new Date(), time : new Date()},
-        {name : "Third Task", description : "arisfgniubfgiuegniupetfbgiuefbguiebguiebfguiegiubarisfgniubfgiuegniupetfbgiuefbguiebguiebfguiegiubarisfgniubfgiuegniupetfbgiuefbguiebguiebfguiegiub", date : new Date(), time : new Date()},
-        {name : "Fourth Task", description : "Decent task", date : new Date(), time : new Date()},
-        {name : "First Task", description : "small", date : new Date(), time : new Date()},
-        {name : "Very very lengthy task name", description : "", date : new Date(), time : new Date()},
-        {name : "Third Task", description : "arisfgniubfgiuegniupetfbgiuefbguiebguiebfguiegiubarisfgniubfgiuegniupetfbgiuefbguiebguiebfguiegiubarisfgniubfgiuegniupetfbgiuefbguiebguiebfguiegiub", date : new Date(), time : new Date()},
-        {name : "Fourth Task", description : "Decent task", date : new Date(), time : new Date()},
-        {name : "First Task", description : "small", date : new Date(), time : new Date()},
-        {name : "Very very lengthy task name", description : "", date : new Date(), time : new Date()},
-        {name : "Third Task", description : "arisfgniubfgiuegniupetfbgiuefbguiebguiebfguiegiubarisfgniubfgiuegniupetfbgiuefbguiebguiebfguiegiubarisfgniubfgiuegniupetfbgiuefbguiebguiebfguiegiub", date : new Date(), time : new Date()},
-        {name : "Fourth Task", description : "Decent task", date : new Date(), time : new Date()},
-    ]
 
     var taskElem = document.getElementsByClassName('task')[0];
     var taskHeight = taskElem!==undefined ? taskElem.offsetHeight : undefined;
     taskHeight += taskHeight!==undefined ? parseInt(window.getComputedStyle(taskElem).getPropertyValue('margin-top')) : undefined;
 
     const tabListStyle = {
-        overflowY : tabIndex==1 ? "scroll" : "visible",
+        overflowY : tabIndex===1 ? "scroll" : "visible",
         maxHeight : taskHeight*6,
     }
+
+    const [upcomingTasks, setUpcomingTasks] = useState([]);
+    const [allTasks, setAllTasks] = useState([]);
+    const [loading, setLoading] = useState(false);
+    
+    const getUpcomingTasks = async ()=> {
+        setLoading(true);
+        const res = await fetch('/upcoming-tasks');
+        if(!res.ok) return false;
+        const data = await res.json();
+        data.map((task)=> {
+            task.date = new Date(task.date);
+        });
+        setUpcomingTasks(data);
+        setLoading(false);
+    }
+
+    const getAllTasks = async ()=> {
+        setLoading(true);
+        const res = await fetch('/all-tasks');
+        if(!res.ok) return false;
+        const data = await res.json();
+        data.map((task)=> {
+            task.date = new Date(task.date);
+        });
+        setAllTasks(data);
+        setLoading(false);
+    }
+
+    useEffect(()=> {
+        getUpcomingTasks();
+        getAllTasks();
+    }, [submitted]);
 
     const TasksList = ({list}) => {
         
@@ -59,11 +64,11 @@ const Drawer = () => {
                             <Grid xs={8} item>
                                 <Grid item sx={styles.name} xs={12}>{task.name}</Grid>
                                 {task.description!=="" && <Grid item sx={styles.description} xs={12}>{task.description}</Grid>}
-                                {task.description=="" && <Grid item sx={styles.description} xs={12}>No Description</Grid>}
+                                {task.description==="" && <Grid item sx={styles.description} xs={12}>No Description</Grid>}
                             </Grid>
                             <Grid xs={4} item sx={{textAlign : "right"}}>
                                 <Grid item sx={styles.date} xs={12}>{task.date.toDateString()}</Grid>
-                                <Grid item sx={styles.time} xs={12}>{task.time.toLocaleTimeString()}</Grid>
+                                <Grid item sx={styles.time} xs={12}>{task.date.toLocaleTimeString()}</Grid>
                             </Grid>
                         </Grid>
                     )
@@ -74,7 +79,7 @@ const Drawer = () => {
 
     return (
         <Grid style={styles.drawer} container>
-            <Box xs={12} >
+            <Grid item xs={12} >
                 <Tabs
                     variant="fullWidth" 
                     value={tabIndex} 
@@ -84,8 +89,13 @@ const Drawer = () => {
                     <Tab style={{minWidth : "50%"}} label="All" />
                 </Tabs>
                 <Divider />
-            </Box>
-            <TasksList list={(tabIndex==0) ? upcomings : all}/>
+            </Grid>
+            {!loading && <TasksList list={(tabIndex===0) ? upcomingTasks : allTasks}/>}
+            {loading && <ColorRing
+                height="80"
+                width="80"
+                colors={['#cacaca']}
+            />}
         </Grid>
     );
 }

@@ -10,10 +10,7 @@ const taskSchema = new mongoose.Schema({
     },
     date : {
         type : Date,
-    },
-    time : {
-        type : Date,
-    },
+    }
 });
 
 const Task = mongoose.model("Task", taskSchema);
